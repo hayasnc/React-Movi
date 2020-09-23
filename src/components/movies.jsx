@@ -1,11 +1,21 @@
 import React, { Component } from "react";
 import { getMovies } from "../services/movieService";
-import Like from "./like";
+import Like from "./common/like";
+import Pagination from "./common/pagination";
+import { paginate } from "../utils/paginate";
 
 class Movies extends Component {
   state = {
     movies: getMovies(),
+    pageSize: 4,
+    currentPage: 1,
   };
+
+  handlePageChange = (page) => {
+    console.log(page);
+    this.setState({ currentPage: page });
+  };
+
   handleDelete = (movieId) => {
     const movies = this.state.movies.filter((item) => item._id !== movieId);
     this.setState({ movies });
@@ -19,7 +29,10 @@ class Movies extends Component {
   };
   render() {
     const { length: count } = this.state.movies;
+    const { currentPage, pageSize, movies: allMovies } = this.state;
     if (count === 0) return <p> No Movies in Database</p>;
+
+    const movies = paginate(allMovies, currentPage, pageSize);
     return (
       <React.Fragment>
         <p>{count} Movies in Database</p>
@@ -35,7 +48,7 @@ class Movies extends Component {
             </tr>
           </thead>
           <tbody>
-            {this.state.movies.map((movie) => (
+            {movies.map((movie) => (
               <tr key={movie._id}>
                 <td>{movie.title}</td>
                 <td>{movie.genre.name}</td>
@@ -59,6 +72,12 @@ class Movies extends Component {
             ))}
           </tbody>
         </table>
+        <Pagination
+          itemsCount={count}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          onPageChange={this.handlePageChange}
+        ></Pagination>
       </React.Fragment>
     );
   }

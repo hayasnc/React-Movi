@@ -24,7 +24,6 @@ class Movies extends Component {
   }
 
   handlePageChange = (page) => {
-    console.log(page);
     this.setState({ currentPage: page });
   };
 
@@ -41,7 +40,6 @@ class Movies extends Component {
   };
 
   handleSort = (path) => {
-    console.log(path);
     const sortColumn = { ...this.state.sortColumn };
     if (path === sortColumn.path) {
       sortColumn.order = sortColumn.order === "asc" ? "desc" : "asc";
@@ -56,8 +54,7 @@ class Movies extends Component {
     this.setState({ selectedGenre: genre, currentPage: 1 });
   };
 
-  render() {
-    const { length: count } = this.state.movies;
+  getPageData = () => {
     const {
       currentPage,
       pageSize,
@@ -65,7 +62,7 @@ class Movies extends Component {
       selectedGenre,
       sortColumn,
     } = this.state;
-    if (count === 0) return <p> No Movies in Database</p>;
+
     const filteredMovies =
       selectedGenre && selectedGenre._id !== 0
         ? allMovies.filter((m) => m.genre._id === selectedGenre._id)
@@ -76,6 +73,14 @@ class Movies extends Component {
       sortColumn.order
     );
     const movies = paginate(sortedMovies, currentPage, pageSize);
+    return { totalCount: filteredMovies.length, data: movies };
+  };
+
+  render() {
+    const { length: count } = this.state.movies;
+    const { currentPage, pageSize, sortColumn } = this.state;
+    if (count === 0) return <p> No Movies in Database</p>;
+    const { totalCount, data } = this.getPageData();
     return (
       <div className="row">
         <div className="col-3">
@@ -90,14 +95,14 @@ class Movies extends Component {
         <div className="col">
           <p>{count} Movies in Database</p>
           <MovieTable
-            data={movies}
+            data={data}
             onLike={this.handleLikeToggle}
             onDelete={this.handleDelete}
             onSort={this.handleSort}
             sortColumn={sortColumn}
           ></MovieTable>
           <Pagination
-            itemsCount={count}
+            itemsCount={totalCount}
             pageSize={pageSize}
             currentPage={currentPage}
             onPageChange={this.handlePageChange}
